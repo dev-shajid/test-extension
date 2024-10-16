@@ -109,3 +109,16 @@ jobs:
           release_name: ${{ steps.get_tag.outputs.version }}  # Same as tag_name
           draft: false
           prerelease: false
+        
+      - name: Create ZIP file of the extension
+        run: |
+          zip -r outlier-earnings-masker.zip manifest.json content.js
+        
+          - name: Upload the ZIP to the release
+          uses: actions/upload-release-asset@v1
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: outlier-earnings-masker.zip
+            asset_name: outlier-earnings-masker-${{ steps.get_tag.outputs.version }}.zip
+            asset_content_type: application/zip
+        
