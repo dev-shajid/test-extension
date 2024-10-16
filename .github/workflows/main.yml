@@ -64,23 +64,33 @@ jobs:
         run: |
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "Latest tag: $latest_tag"
+          
+          # Default to v1.0.0 if no tag exists
           if [ -z "$latest_tag" ]; then
             new_version="v1.0.0"
           else
             # Ensure valid semantic version splitting
             latest_tag=$(echo $latest_tag | sed 's/^v//')  # Strip leading 'v' if present
+            
+            # Split the version into major, minor, patch, and handle missing components
             IFS='.' read -r major minor patch <<< "$latest_tag"
             
-            # Ensure major, minor, and patch are integers and increment patch
+            # If the minor version is missing, default to 0
+            if [ -z "$minor" ]; then
+              minor=0
+            fi
+            
+            # If the patch version is missing, default to 0
+            if [ -z "$patch" ]; then
+              patch=0
+            fi
+            
+            # Increment the patch version
             patch=$((patch + 1))
             
-            if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
-              echo "Error: Failed to parse version number."
-              exit 1
-            fi
-
             new_version="v$major.$minor.$patch"
           fi
+          
           echo "::set-output name=version::$new_version"
           echo "Generated new version: $new_version"
 
@@ -99,3 +109,12 @@ jobs:
           release_name: ${{ steps.get_tag.outputs.version }}  # Same as tag_name
           draft: false
           prerelease: false
+
+      # Step 7: Upload the ZIP file to the release
+      - name: Upload the ZIP to the release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release/outlier-earnings-masker.zip
+          asset_name: outlier-earnings-masker-${{ steps.get_tag.outputs.version }}.zip
+          asset_content_type: application/zip
