@@ -65,15 +65,20 @@ jobs:
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "Latest tag: $latest_tag"
           if [ -z "$latest_tag" ]; then
-            echo "::set-output name=version::v1.0.0"
+            new_version="v1.0.0"
           else
             IFS='.' read -r major minor patch <<< "${latest_tag:1}"  # Strip 'v' and split version
             patch=$((patch + 1))  # Increment the patch version
             new_version="v$major.$minor.$patch"
-            echo "::set-output name=version::$new_version"
           fi
+          echo "::set-output name=version::$new_version"
+          echo "Generated new version: $new_version"
 
-      # Step 5: Create a new release using the incremented version
+      # Step 5: Verify the generated version
+      - name: Debug Version
+        run: 'echo "The version is: ${{ steps.get_tag.outputs.version }}"'
+
+      # Step 6: Create a new release using the incremented version
       - name: Create a GitHub release
         id: create_release
         uses: actions/create-release@v1
