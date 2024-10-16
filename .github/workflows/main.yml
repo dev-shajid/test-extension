@@ -1,0 +1,48 @@
+name: Outlier.ai Earnings Masker - Extension
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create ZIP file of the extension
+        run: |
+          mkdir -p release
+          zip -r release/outlier-earnings-masker.zip manifest.json content.js
+
+      - name: Upload the artifact (ZIP)
+        uses: actions/upload-artifact@v3
+        with:
+          name: outlier-earnings-masker
+          path: release/outlier-earnings-masker.zip
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: outlier-earnings-masker
+
+      - name: Create a new release with the ZIP file
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/outlier-earnings-masker.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
