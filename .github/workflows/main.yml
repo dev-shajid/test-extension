@@ -60,7 +60,7 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use PAT instead of GITHUB_TOKEN
 
       # Step 4: Upload the ZIP file to the release
       - name: Upload the ZIP to the release
