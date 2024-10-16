@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Create a ZIP file of the extension
+      # Step 2: Create ZIP file of the extension
       - name: Create ZIP file of the extension
         run: |
           mkdir -p release
@@ -33,6 +33,9 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Give the token write permission
 
     steps:
       # Step 1: Download the built artifact (ZIP file)
