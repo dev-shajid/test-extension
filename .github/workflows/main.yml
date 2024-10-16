@@ -24,7 +24,6 @@ jobs:
         run: |
           mkdir -p release
           zip -r release/outlier-earnings-masker.zip manifest.json content.js
-          # Log the files in the release folder for debugging purposes
           ls -la release/
 
       # Step 3: Upload the artifact (ZIP file)
@@ -56,9 +55,10 @@ jobs:
 
       # Step 3: List files to verify artifact download
       - name: List downloaded files
-        run: ls -la 
+        run: |
+          ls -la 
 
-      # Step 4: Get the latest release tag
+      # Step 4: Get the latest release tag and increment the version
       - name: Get latest release tag
         id: get_tag
         run: |
@@ -67,14 +67,24 @@ jobs:
           if [ -z "$latest_tag" ]; then
             new_version="v1.0.0"
           else
-            IFS='.' read -r major minor patch <<< "${latest_tag:1}"  # Strip 'v' and split version
-            patch=$((patch + 1))  # Increment the patch version
+            # Ensure valid semantic version splitting
+            latest_tag=$(echo $latest_tag | sed 's/^v//')  # Strip leading 'v' if present
+            IFS='.' read -r major minor patch <<< "$latest_tag"
+            
+            # Ensure major, minor, and patch are integers and increment patch
+            patch=$((patch + 1))
+            
+            if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
+              echo "Error: Failed to parse version number."
+              exit 1
+            fi
+
             new_version="v$major.$minor.$patch"
           fi
           echo "::set-output name=version::$new_version"
           echo "Generated new version: $new_version"
 
-      # Step 5: Verify the generated version
+      # Step 5: Debug Version
       - name: Debug Version
         run: 'echo "The version is: ${{ steps.get_tag.outputs.version }}"'
 
