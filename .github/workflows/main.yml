@@ -3,61 +3,63 @@ name: Build and Release Chrome Extension
 on:
   push:
     branches:
-      - main
+      - main  # Trigger workflow on push to the main branch
   pull_request:
     branches:
-      - main
+      - main  # Trigger workflow on pull requests targeting the main branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment for the job
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Checkout the repository
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Fetch full history and tags for versioning
 
       - name: Create ZIP file of the extension
         run: |
-          zip -r outlier-earnings-masker.zip manifest.json content.js
-          ls -la
+          zip -r outlier-earnings-masker.zip manifest.json content.js  # Create a ZIP file containing manifest.json and content.js
+          ls -la  # List contents of the release directory for debugging
 
       - name: Upload the artifact (ZIP)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3  # Upload the created ZIP file as an artifact
         with:
-          name: outlier-earnings-masker
-          path: outlier-earnings-masker.zip
+          name: outlier-earnings-masker  # Name of the artifact
+          path: outlier-earnings-masker.zip  # Path to the artifact
 
   release:
-    runs-on: ubuntu-latest
-    needs: build
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment for the release job
+    needs: build  # Ensure this job runs after the build job
 
     permissions:
-      contents: write
+      contents: write  # Grant write permissions to create a release
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Checkout the repository again in the release job
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Fetch full history and tags for versioning
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3  # Download the ZIP file artifact created in the build job
         with:
-          name: outlier-earnings-masker
+          name: outlier-earnings-masker  # Name of the artifact to download
 
       - name: List downloaded files
         run: |
-          ls -la 
+          ls -la  # List downloaded files for debugging purposes
 
       - name: Get latest release tag
         id: get_tag
         run: |
+          # Get the latest tag, and if none exists, default to v1.0.0
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           if [ -z "$latest_tag" ]; then
             new_version="v1.0.0"
           else
+            # Parse version numbers and increment patch
             latest_tag=$(echo $latest_tag | sed 's/^v//')
             IFS='.' read -r major minor patch <<< "$latest_tag"
             minor=${minor:-0}
@@ -65,28 +67,28 @@ jobs:
             patch=$((patch + 1))
             new_version="v$major.$minor.$patch"
           fi
-          echo "::set-output name=version::$new_version"
+          echo "::set-output name=version::$new_version"  # Output the new version
 
       - name: Debug Version
-        run: 'echo "The version is: ${{ steps.get_tag.outputs.version }}"'
+        run: 'echo "The version is: ${{ steps.get_tag.outputs.version }}"'  # Print the new version for debugging
 
       - name: Create a GitHub release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1  # Create a new GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
         with:
-          tag_name: ${{ steps.get_tag.outputs.version }}
-          release_name: ${{ steps.get_tag.outputs.version }}
+          tag_name: ${{ steps.get_tag.outputs.version }}  # Use the new version as the tag
+          release_name: ${{ steps.get_tag.outputs.version }}  # Use the new version as the release name
           draft: false
           prerelease: false
 
       - name: Upload the ZIP to the release
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1  # Upload the ZIP file to the release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: outlier-earnings-masker.zip
-          asset_name: outlier-earnings-masker-${{ steps.get_tag.outputs.version }}.zip
-          asset_content_type: application/zip
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # URL to the release
+          asset_path: outlier-earnings-masker.zip  # Path to the ZIP file
+          asset_name: outlier-earnings-masker-${{ steps.get_tag.outputs.version }}.zip  # Name of the ZIP file in the release
+          asset_content_type: application/zip  # Specify that the asset is a ZIP file
