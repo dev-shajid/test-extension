@@ -1,4 +1,4 @@
-name: Outlier.ai Earnings Masker - Extension
+name: Build and Release Chrome Extension
 
 on:
   push:
@@ -7,42 +7,57 @@ on:
   pull_request:
     branches:
       - main
-  release:
-    types: [created]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Create a ZIP file of the extension
       - name: Create ZIP file of the extension
         run: |
           mkdir -p release
           zip -r release/outlier-earnings-masker.zip manifest.json content.js
 
+      # Step 3: Upload the artifact (ZIP file)
       - name: Upload the artifact (ZIP)
         uses: actions/upload-artifact@v3
         with:
           name: outlier-earnings-masker
           path: release/outlier-earnings-masker.zip
 
-  deploy:
+  release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
 
     steps:
+      # Step 1: Download the built artifact (ZIP file)
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: outlier-earnings-masker
 
-      - name: Create a new release with the ZIP file
-        uses: softprops/action-gh-release@v1
+      # Step 2: Create a new release
+      - name: Create a GitHub release
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          files: release/outlier-earnings-masker.zip
+          tag_name: "v${{ github.run_number }}"  # Auto-increments release version
+          release_name: "v${{ github.run_number }}"  # Same as tag_name
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Upload the ZIP file to the release
+      - name: Upload the ZIP to the release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release/outlier-earnings-masker.zip
+          asset_name: outlier-earnings-masker-v${{ github.run_number }}.zip
+          asset_content_type: application/zip
