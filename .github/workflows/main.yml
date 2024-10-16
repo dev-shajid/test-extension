@@ -17,11 +17,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Create ZIP file of the extension
+      # Step 2: Create a ZIP file of the extension
       - name: Create ZIP file of the extension
         run: |
           mkdir -p release
           zip -r release/outlier-earnings-masker.zip manifest.json content.js
+          # Log the files in the release folder for debugging purposes
+          ls -la release/
 
       # Step 3: Upload the artifact (ZIP file)
       - name: Upload the artifact (ZIP)
@@ -44,7 +46,11 @@ jobs:
         with:
           name: outlier-earnings-masker
 
-      # Step 2: Create a new release
+      # Step 2: List files to verify artifact download
+      - name: List downloaded files
+        run: ls -la 
+
+      # Step 3: Create a new release
       - name: Create a GitHub release
         id: create_release
         uses: actions/create-release@v1
@@ -56,11 +62,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 3: Upload the ZIP file to the release
+      # Step 4: Upload the ZIP file to the release
       - name: Upload the ZIP to the release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/outlier-earnings-masker.zip
+          asset_path: outlier-earnings-masker.zip  # Use the downloaded artifact path
           asset_name: outlier-earnings-masker-v${{ github.run_number }}.zip
           asset_content_type: application/zip
