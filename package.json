@@ -1,5 +1,5 @@
 {
-    "name": "outlier-earnings-masker",
+    "name": "@dev-shajid/test-extension",
     "version": "1.0.0",
     "description": "Chrome extension to obfuscate dollar amounts on Outlier.ai for privacy or testing purposes.",
     "main": "content.js",
@@ -8,7 +8,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/NymphSolutions/wizard-tools.git"
+        "url": "https://github.com/dev-shajid/test-extension.git"
     },
     "author": "Your Name",
     "license": "MIT"
