@@ -51,23 +51,22 @@ jobs:
         run: |
           ls -la  # List downloaded files for debugging purposes
 
-      - name: Get latest release tag
-        id: get_tag
-        run: |
-          # Get the latest tag, and if none exists, default to v1.0.0
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          if [ -z "$latest_tag" ]; then
-            new_version="v1.0.0"
-          else
-            # Parse version numbers and increment patch
-            latest_tag=$(echo $latest_tag | sed 's/^v//')
-            IFS='.' read -r major minor patch <<< "$latest_tag"
-            minor=${minor:-0}
-            patch=${patch:-0}
-            patch=$((patch + 1))
-            new_version="v$major.$minor.$patch"
-          fi
-          echo "::set-output name=version::$new_version"  # Output the new version
+          - name: Get latest release tag
+          id: get_tag
+          run: |
+            latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+            if [ -z "$latest_tag" ]; then
+              new_version="v1.0.0"
+            else
+              latest_tag=$(echo $latest_tag | sed 's/^v//')
+              IFS='.' read -r major minor patch <<< "$latest_tag"
+              minor=${minor:-0}
+              patch=${patch:-0}
+              patch=$((patch + 1))
+              new_version="v$major.$minor.$patch"
+            fi
+            echo "version=$new_version" >> $GITHUB_ENV  # Set environment variable instead of set-output
+        
 
       - name: Debug Version
         run: 'echo "The version is: ${{ steps.get_tag.outputs.version }}"'  # Print the new version for debugging
