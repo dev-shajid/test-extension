@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Outlier.ai Earnings Masker",
+    "version": "1.0",
+    "description": "This Chrome extension replaces dollar amounts and currency symbols ($) on the Outlier.ai website with *** to obfuscate financial information displayed on the page.",
+    "permissions": [
+        "tabs",
+        "activeTab"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://app.outlier.ai/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}
