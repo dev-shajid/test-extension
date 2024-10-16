@@ -74,7 +74,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           tag_name: ${{ steps.get_tag.outputs.version }}
           release_name: ${{ steps.get_tag.outputs.version }}
@@ -83,6 +83,8 @@ jobs:
 
       - name: Upload the ZIP to the release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: outlier-earnings-masker.zip
